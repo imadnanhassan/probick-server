@@ -1,16 +1,10 @@
-export enum BicycleType {
-  Mountain = 'Mountain',
-  Road = 'Road',
-  Hybrid = 'Hybrid',
-  BMX = 'BMX',
-  Electric = 'Electric',
-}
+
 
 export interface Product {
   name: string;
   brand: string;
   price: string;
-  type: BicycleType;
+  model: string;
   description: string;
   quantity: string;
   inStock: boolean;

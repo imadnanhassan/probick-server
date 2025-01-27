@@ -27,8 +27,9 @@ export const ProductSchema = z.object({
       
       .min(1, 'Price must be at least 1')
       .max(10000, 'Price must be less than 10000'),
-    type: z
-      .enum(['Mountain', 'Road', 'Hybrid', 'BMX', 'Electric']),
+    model: z
+    .string(),
+    
       
     description: z
       .string()

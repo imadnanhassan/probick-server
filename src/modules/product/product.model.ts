@@ -19,9 +19,8 @@ const productSchema = new Schema<Product>(
       required: [true, 'Price is required'],
       min: [0, 'Price must be a positive number'],
     },
-    type: {
+    model: {
       type: String,
-      enum: Object.values(BicycleType),
       required: [true, 'Bicycle type is required'],
     },
     description: { type: String, required: [true, 'Description is required'] },
