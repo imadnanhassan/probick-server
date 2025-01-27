@@ -15,7 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importDefault(require("mongoose"));
 const DB_1 = __importDefault(require("../DB"));
 const connectDB = () => __awaiter(void 0, void 0, void 0, function* () {
-    const uri = 'mongodb://127.0.0.1:27017/bicycle_store';
+    const uri = 'mongodb+srv://bicycle-store:4RXvMyukIIh4O18p@cluster0.exf98yb.mongodb.net/bicycle_store?retryWrites=true&w=majority&appName=Cluster0 ';
     try {
         (0, DB_1.default)();
         yield mongoose_1.default.connect(uri);

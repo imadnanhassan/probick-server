@@ -4,14 +4,12 @@ import { apiResponse } from '../../utils/apiResponse';
 import { ProductSchema } from './product.validation';
 import { sendImageToCloudinary } from '../../utils/sendImageToCloudinary';
 
-const addProduct = async (req: Request, res: Response) => {
+const addProduct = async (req: Request, res: Response): Promise<void> => {
   try {
-    
-    const file = req.file; 
+    const file = req.file;
     if (!file) {
-      return res
-        .status(400)
-        .json(apiResponse.error(null, 'No image file uploaded'));
+      res.status(400).json(apiResponse.error(null, 'No image file uploaded'));
+      return;
     }
 
     const cloudinaryResult = await sendImageToCloudinary(
@@ -22,7 +20,7 @@ const addProduct = async (req: Request, res: Response) => {
     // Add the image URL to the product data
     const validatedData = ProductSchema.parse({
       ...req.body,
-      imageUrl: cloudinaryResult.secure_url, 
+      imageUrl: cloudinaryResult.secure_url,
     });
 
     // Save the product to the database

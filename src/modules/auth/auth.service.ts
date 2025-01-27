@@ -31,13 +31,13 @@ const loginUser = async (payload: TLoginUser) => {
   const accessToken = createToken(
     jwtPayload,
     config.JWT_ACCESS_SECRET as string,
-    config.jwt_access_expires_in as string
+    parseInt(config.jwt_access_expires_in as string)
   );
 
   const refreshToken = createToken(
     jwtPayload,
     config.JWT_REFRESH_SECRE as string,
-    config.jwt_refresh_expires_in as string
+    parseInt(config.jwt_refresh_expires_in as string)
   );
 
   return {
@@ -82,14 +82,14 @@ const register = async (payload: TUser) => {
   const accessToken = createToken(
     jwtPayload,
     config.JWT_ACCESS_SECRET as string,
-    config.jwt_access_expires_in as string
+    parseInt(config.jwt_access_expires_in as string)
   );
 
   // Generate the refresh token
   const refreshToken = createToken(
     jwtPayload,
     config.JWT_REFRESH_SECRE as string,
-    config.jwt_refresh_expires_in as string
+    parseInt(config.jwt_refresh_expires_in as string)
   );
 
   return {
@@ -126,7 +126,7 @@ const refreshToken = async (token: string) => {
   const accessToken = createToken(
     jwtPayload,
     config.JWT_ACCESS_SECRET as string,
-    config.jwt_access_expires_in as string
+    parseInt(config.jwt_access_expires_in as string)
   );
 
   return {

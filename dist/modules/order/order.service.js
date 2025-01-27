@@ -18,11 +18,11 @@ const createOrder = (orderData) => __awaiter(void 0, void 0, void 0, function* (
     if (!product) {
         throw new Error('Product not found');
     }
-    if (product.quantity < quantity) {
+    if (Number(product.quantity) < quantity) {
         throw new Error('Insufficient stock available');
     }
-    product.quantity -= quantity;
-    if (product.quantity === 0) {
+    product.quantity = (Number(product.quantity) - quantity).toString();
+    if (Number(product.quantity) === 0) {
         product.inStock = false;
     }
     yield product.save();

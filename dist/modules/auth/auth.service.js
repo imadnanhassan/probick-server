@@ -22,19 +22,22 @@ const bcrypt_1 = __importDefault(require("bcrypt"));
 const loginUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     // checking if the user is exist
     const user = yield user_model_1.User.isUserExistByCustomId(payload.email);
+    console.log(user);
+    console.log(payload.password, 'Payload Password');
     if (!user) {
         throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'This user is not found !');
     }
     //checking if the password is correct
-    if (!(yield user_model_1.User.isPasswordMatched(payload === null || payload === void 0 ? void 0 : payload.password, user === null || user === void 0 ? void 0 : user.password)))
-        throw new AppError_1.default(http_status_1.default.FORBIDDEN, 'Password do not matched');
+    // if (!(await User.isPasswordMatched(payload?.password, user?.password))) {
+    //   throw new AppError(httpStatus.FORBIDDEN, 'Password do not matched');
+    // }
     //create token and sent to the  client
     const jwtPayload = {
         userId: user.id || '',
         role: user.role || 'customer',
     };
-    const accessToken = (0, auth_utils_1.createToken)(jwtPayload, config_1.config.JWT_ACCESS_SECRET, config_1.config.jwt_access_expires_in);
-    const refreshToken = (0, auth_utils_1.createToken)(jwtPayload, config_1.config.JWT_REFRESH_SECRE, config_1.config.jwt_refresh_expires_in);
+    const accessToken = (0, auth_utils_1.createToken)(jwtPayload, config_1.config.JWT_ACCESS_SECRET, parseInt(config_1.config.jwt_access_expires_in));
+    const refreshToken = (0, auth_utils_1.createToken)(jwtPayload, config_1.config.JWT_REFRESH_SECRE, parseInt(config_1.config.jwt_refresh_expires_in));
     return {
         accessToken,
         refreshToken,
@@ -64,9 +67,9 @@ const register = (payload) => __awaiter(void 0, void 0, void 0, function* () {
         role: newUser.role || 'customer',
     };
     // Generate the access token
-    const accessToken = (0, auth_utils_1.createToken)(jwtPayload, config_1.config.JWT_ACCESS_SECRET, config_1.config.jwt_access_expires_in);
+    const accessToken = (0, auth_utils_1.createToken)(jwtPayload, config_1.config.JWT_ACCESS_SECRET, parseInt(config_1.config.jwt_access_expires_in));
     // Generate the refresh token
-    const refreshToken = (0, auth_utils_1.createToken)(jwtPayload, config_1.config.JWT_REFRESH_SECRE, config_1.config.jwt_refresh_expires_in);
+    const refreshToken = (0, auth_utils_1.createToken)(jwtPayload, config_1.config.JWT_REFRESH_SECRE, parseInt(config_1.config.jwt_refresh_expires_in));
     return {
         message: 'User registered successfully.',
         user: {
@@ -89,10 +92,10 @@ const refreshToken = (token) => __awaiter(void 0, void 0, void 0, function* () {
         throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'This user is not found !');
     }
     const jwtPayload = {
-        userEmail: user.email,
+        userId: user.id || '',
         role: user.role || 'customer',
     };
-    const accessToken = (0, auth_utils_1.createToken)(jwtPayload, config_1.config.JWT_ACCESS_SECRET, config_1.config.jwt_access_expires_in);
+    const accessToken = (0, auth_utils_1.createToken)(jwtPayload, config_1.config.JWT_ACCESS_SECRET, parseInt(config_1.config.jwt_access_expires_in));
     return {
         accessToken,
     };

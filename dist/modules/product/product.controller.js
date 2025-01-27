@@ -13,13 +13,24 @@ exports.ProductController = void 0;
 const product_service_1 = require("./product.service");
 const apiResponse_1 = require("../../utils/apiResponse");
 const product_validation_1 = require("./product.validation");
+const sendImageToCloudinary_1 = require("../../utils/sendImageToCloudinary");
 const addProduct = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const validatedData = product_validation_1.ProductSchema.parse(req.body);
+        const file = req.file;
+        if (!file) {
+            res
+                .status(400)
+                .json(apiResponse_1.apiResponse.error(null, 'No image file uploaded'));
+            return;
+        }
+        const cloudinaryResult = yield (0, sendImageToCloudinary_1.sendImageToCloudinary)(file.filename, file.path);
+        // Add the image URL to the product data
+        const validatedData = product_validation_1.ProductSchema.parse(Object.assign(Object.assign({}, req.body), { imageUrl: cloudinaryResult.secure_url }));
+        // Save the product to the database
         const product = yield product_service_1.ProductService.addProductToDB(validatedData);
         res
             .status(200)
-            .json(apiResponse_1.apiResponse.success(product, 'Bicycle created successfully'));
+            .json(apiResponse_1.apiResponse.success(product, 'Product created successfully'));
     }
     catch (error) {
         res.status(400).json(apiResponse_1.apiResponse.error(error, 'Invalid product data'));
