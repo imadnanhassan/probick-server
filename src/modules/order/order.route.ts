@@ -1,17 +1,30 @@
 import express from 'express';
 import { OrderController } from './order.controller';
+import auth from '../../middleware/auth';
+import validateRequest from '../../middleware/validateRequest';
+import { createOrderSchema, updateOrderStatusSchema } from './order.validation';
 
 const router = express.Router();
 
-router.post('/', OrderController.createOrder);
+
 router.get('/revenue', OrderController.getTotalRevenue);
 
+router.post(
+  '/',
+  auth('user', 'admin'),
+  validateRequest(createOrderSchema),
+  OrderController.createOrder
+);
 
+router.put(
+  '/:orderId',
+  auth('admin'),
+  validateRequest(updateOrderStatusSchema),
+  OrderController.updateOrder
+);
 
+router.get('/', auth('admin'), OrderController.getOrders);
 
-// router.post('/', auth('user', 'admin'), validateRequest(createOrder), createOrder); // Create order
-// router.put('/:orderId', auth('admin'), validateRequest(updateOrderStatusSchema), updateOrder); // Update order status
-// router.get('/', auth('admin'), getOrders); // Get all orders
-// router.get('/:orderId', auth('user', 'admin'), getOrderById); // Get order by ID
+router.get('/:orderId', auth('user', 'admin'), OrderController.getOrderById);
 
 export const OrderRoutes = router;

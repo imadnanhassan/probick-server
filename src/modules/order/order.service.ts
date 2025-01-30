@@ -1,26 +1,65 @@
 import { OrderModel } from './order.model';
 import { ProductModel } from '../product/product.model';
-import { Order } from './order.interface';
+import { IOrder } from './order.interface';
+import AppError from '../../error/AppError';
 
-const createOrder = async (orderData: Order) => {
-  const { product: productId, quantity } = orderData;
+const createOrderinDB = async (data: any): Promise<IOrder> => {
+  const { userId, products, totalPrice } = data;
 
-  const product = await ProductModel.findById(productId);
-  if (!product) {
-    throw new Error('Product not found');
+  // Check if the products exist and have enough stock
+  const productIds = products.map((prod: any) => prod.productId);
+  const foundProducts = await ProductModel.find({ _id: { $in: productIds } });
+
+  if (foundProducts.length !== products.length) {
+    throw new AppError(400, 'Some products are invalid or out of stock');
   }
 
-  if (Number(product.quantity) < quantity) {
-    throw new Error('Insufficient stock available');
+  // Check stock levels
+  for (let prod of products) {
+    const product = foundProducts.find(
+      (p) => p._id.toString() === prod.productId
+    );
+    if (product && !product.inStock) {
+      throw new AppError(400, `Not enough stock for ${product.name}`);
+    }
   }
 
-  product.quantity = (Number(product.quantity) - quantity).toString();
-  if (Number(product.quantity) === 0) {
-    product.inStock = false;
-  }
-  await product.save();
+  // Create order
+  const order = new OrderModel({
+    user: userId,
+    products: products.map((prod: any) => prod.productId),
+    totalPrice,
+    status: 'pending',
+  });
 
-  const order = await OrderModel.create(orderData);
+  await order.save();
+  return order;
+};
+
+export const updateOrder = async (orderId: string, status: string) => {
+  const order = await OrderModel.findByIdAndUpdate(
+    orderId,
+    { status },
+    { new: true }
+  );
+  if (!order) {
+    throw new AppError(404, 'Order not found');
+  }
+  return order;
+};
+
+const getAllOrders = async () => {
+  const orders = await OrderModel.find().populate('user').populate('products');
+  return orders;
+};
+
+const getOrderById = async (orderId: string) => {
+  const order = await OrderModel.findById(orderId)
+    .populate('user')
+    .populate('products');
+  if (!order) {
+    throw new AppError(404, 'Order not found');
+  }
   return order;
 };
 
@@ -53,25 +92,10 @@ const calculateRevenue = async () => {
   return revenueData.length > 0 ? revenueData[0] : { totalRevenue: 0 };
 };
 
-// const calculateRevenue = async () => {
-//   const revenueData = await OrderModel.aggregate([
-//     {
-//       $project: {
-//         totalPrice: { $multiply: ['$price', '$quantity'] },
-//       },
-//     },
-//     {
-//       $group: {
-//         _id: null,
-//         totalRevenue: { $sum: '$totalPrice' },
-//       },
-//     },
-//   ]);
-
-//   return revenueData.length > 0 ? revenueData[0] : { totalRevenue: 0 };
-// };
-
 export const OrderService = {
-  createOrder,
+  createOrderinDB,
+  updateOrder,
+  getAllOrders,
+  getOrderById,
   calculateRevenue,
 };

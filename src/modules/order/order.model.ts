@@ -13,7 +13,9 @@ const OrderSchema = new Schema<IOrder>(
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Product',
         required: true,
+        quantity: String,
       },
+      
     ],
     totalPrice: {
       type: Number,
