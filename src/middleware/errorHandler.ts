@@ -1,10 +1,13 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { Request, Response, NextFunction } from 'express';
-import { constants } from '../utils/constants';
+import { NextFunction, Request, Response } from 'express';
+import { MongoServerError } from 'mongodb';
+import { Error as MongooseError } from 'mongoose';
+import { ZodError } from 'zod';
+import AppError from '../error/AppError';
+import handleCastError from '../error/handleCastError';
+import handleDuplicateError from '../error/handleDuplicateError';
+import handleValidationError from '../error/handleValidationError';
+import handleZodError from '../error/handleZodError';
 
-interface CustomError extends Error {
-  statusCode?: number;
-}
 
 export const errorHandler = (
   err: unknown,
@@ -12,15 +15,33 @@ export const errorHandler = (
   res: Response,
   _next: NextFunction
 ) => {
-  const error = err as CustomError;
+  console.error('Error:', err);
 
-  const statusCode =
-    error.statusCode || constants.HTTP_STATUS.INTERNAL_SERVER_ERROR;
-  const message = error.message || 'An unexpected error occurred';
+  let processedError: AppError = new AppError(
+    500,
+    'An unexpected error occurred'
+  );
 
-  res.status(statusCode).json({
-    status: 'error',
-    message,
-    stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+  if (err instanceof AppError) {
+    processedError = err;
+  } else if (err instanceof MongooseError.CastError) {
+    processedError = handleCastError(err);
+  } else if (err instanceof MongoServerError && err.code === 11000) {
+    processedError = handleDuplicateError(err);
+  } else if (err instanceof MongooseError.ValidationError) {
+    processedError = handleValidationError(err);
+  } else if (err instanceof ZodError) {
+    processedError = handleZodError(err);
+  } else if (err instanceof Error) {
+    processedError = new AppError(500, err.message);
+  }
+
+  res.status(processedError.statusCode).json({
+    success: false,
+    statusCode: processedError.statusCode,
+    message: processedError.message,
+    errors: processedError.errors || [],
+    stack:
+      process.env.NODE_ENV === 'development' ? processedError.stack : undefined,
   });
 };

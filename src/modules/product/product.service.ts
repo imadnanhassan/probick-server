@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import QueryBuilder from '../../builder/QueryBuilder';
 import { Product } from './product.interface';
 import { ProductModel } from './product.model';
 
@@ -7,25 +8,24 @@ const addProductToDB = async (product: Product) => {
   return newProduct;
 };
 
-const getAllProductsToDB = async (searchTerm: string | undefined) => {
-  try {
-    let query = {};
-    if (searchTerm) {
-      query = {
-        $or: [
-          { name: { $regex: searchTerm, $options: 'i' } },
-          { brand: { $regex: searchTerm, $options: 'i' } },
-          { type: { $regex: searchTerm, $options: 'i' } },
-        ],
-      };
-    }
+const getAllProductsToDB = async (query: Record<string, unknown>) => {
+  const queryBuilder = new QueryBuilder(ProductModel.find(), query);
 
-    const bicycles = await ProductModel.find(query);
+  // Apply filtering, search, sorting, pagination, and field selection
+  queryBuilder
+    .search(['name', 'description'])
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
 
-    return bicycles;
-  } catch (error) {
-    throw new Error('Error fetching bicycles: ');
-  }
+  // Fetch products
+  const products = await queryBuilder.modelQuery;
+
+  // Fetch total count for pagination metadata
+  const meta = await queryBuilder.countTotal();
+
+  return { meta, products };
 };
 
 const getSingleProductByIdFromDB = async (productId: string) => {
