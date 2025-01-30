@@ -1,9 +1,9 @@
 import { config } from '../../config';
+import { Request } from 'express';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { AuthServices } from './auth.service';
 import httpStatus from 'http-status';
-
 
 const loginUser = catchAsync(async (req, res) => {
   const result = await AuthServices.loginUser(req.body);
@@ -26,19 +26,16 @@ const loginUser = catchAsync(async (req, res) => {
   });
 });
 
-
 const registerUser = catchAsync(async (req, res) => {
-
-  
-    const result = await AuthServices.register(req.body);
-  const { accessToken, refreshToken } = result;
+  const result = await AuthServices.register(req.body);
+  const { refreshToken } = result;
 
   // Set the refresh token in a cookie
   res.cookie('refreshToken', refreshToken, {
-    secure: config.NODE_ENV === 'production', 
-    httpOnly: true, 
-    sameSite: 'none', 
-    maxAge: 1000 * 60 * 60 * 24 * 365, // 1 year
+    secure: config.NODE_ENV === 'production',
+    httpOnly: true,
+    sameSite: 'none',
+    maxAge: 1000 * 60 * 60 * 24 * 365,
   });
 
   // Send the success response
@@ -46,13 +43,9 @@ const registerUser = catchAsync(async (req, res) => {
     statusCode: httpStatus.CREATED,
     success: true,
     message: 'User registered successfully!',
-    data: {
-      accessToken, // Send access token to the client
-    },
+    data: {},
   });
 });
-
-
 
 const refreshToken = catchAsync(async (req, res) => {
   const { refreshToken } = req.cookies;
@@ -67,7 +60,7 @@ const refreshToken = catchAsync(async (req, res) => {
 });
 
 export const AuthControllers = {
-    loginUser,
-    registerUser,
+  loginUser,
+  registerUser,
   refreshToken,
 };

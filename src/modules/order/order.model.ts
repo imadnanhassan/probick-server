@@ -1,18 +1,31 @@
 import mongoose, { model, Schema } from 'mongoose';
-import { Order } from './order.interface';
+import { IOrder } from './order.interface';
 
-const OrderSchema = new Schema(
+const OrderSchema = new Schema<IOrder>(
   {
-    email: { type: String, required: true },
-    product: {
+    user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Product',
+      ref: 'User',
       required: true,
     },
-    quantity: { type: Number, required: true },
-    totalPrice: { type: Number, required: true },
+    products: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Product',
+        required: true,
+      },
+    ],
+    totalPrice: {
+      type: Number,
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ['pending', 'shipped', 'delivered'],
+      default: 'pending',
+    },
   },
   { timestamps: true }
 );
 
-export const OrderModel = model<Order>('Order', OrderSchema);
+export const OrderModel = model<IOrder>('Order', OrderSchema);
