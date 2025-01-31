@@ -5,22 +5,37 @@ import { sendImageToCloudinary } from '../../utils/sendImageToCloudinary';
 import sendResponse from '../../utils/sendResponse';
 import catchAsync from '../../utils/catchAsync';
 
-const addProduct = catchAsync(async (req: Request, res: Response): Promise<void> => {
-  console.log(req.body, 'req.body');
-  const file = req.file;
-  if (!file) {
-    return sendResponse(res, { statusCode: 400, success: false, message: 'No image file uploaded', data: null });
+const addProduct = catchAsync(
+  async (req: Request, res: Response): Promise<void> => {
+    console.log(req.body, 'req.body');
+    const file = req.file;
+    if (!file) {
+      return sendResponse(res, {
+        statusCode: 400,
+        success: false,
+        message: 'No image file uploaded',
+        data: null,
+      });
+    }
+
+    const cloudinaryResult = await sendImageToCloudinary(
+      file.filename,
+      file.path
+    );
+    const validatedData = ProductSchema.parse({
+      ...req.body,
+      imageUrl: cloudinaryResult.secure_url,
+    });
+
+    const product = await ProductService.addProductToDB(validatedData);
+    sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: 'Product created successfully',
+      data: product,
+    });
   }
-
-  const cloudinaryResult = await sendImageToCloudinary(file.filename, file.path);
-  const validatedData = ProductSchema.parse({
-    ...req.body,
-    imageUrl: cloudinaryResult.secure_url,
-  });
-
-  const product = await ProductService.addProductToDB(validatedData);
-  sendResponse(res, { statusCode: 200, success: true, message: 'Product created successfully', data: product });
-});
+);
 
 const getAllProducts = catchAsync(
   async (req: Request, res: Response): Promise<void> => {
@@ -64,16 +79,14 @@ const getSingleProductById = catchAsync(
 const updateProduct = catchAsync(
   async (req: Request, res: Response): Promise<void> => {
     const { productId } = req.params;
-    const updatedData = req.body;
+    let updatedData = req.body;
 
-    console.log(req, 'req.body');
+    console.log(req.body, 'req.body');
     console.log(productId, 'productId');
     console.log(updatedData, 'updatedData');
 
-    return 
 
     const file = req.file;
-
 
     if (file) {
       const cloudinaryResult = await sendImageToCloudinary(
