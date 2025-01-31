@@ -6,7 +6,6 @@ import AppError from '../../error/AppError';
 const createOrderinDB = async (data: any): Promise<IOrder> => {
   const { userId, products, totalPrice } = data;
 
-  // Check if the products exist and have enough stock
   const productIds = products.map((prod: any) => prod.productId);
   const foundProducts = await ProductModel.find({ _id: { $in: productIds } });
 

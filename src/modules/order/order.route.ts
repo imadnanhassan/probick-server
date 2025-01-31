@@ -10,7 +10,7 @@ const router = express.Router();
 router.get('/revenue', OrderController.getTotalRevenue);
 
 router.post(
-  '/',
+  '/add',
   auth('user', 'admin'),
   validateRequest(createOrderSchema),
   OrderController.createOrder
