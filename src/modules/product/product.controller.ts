@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { ProductService } from './product.service';
-import { apiResponse } from '../../utils/apiResponse';
 import { ProductSchema } from './product.validation';
 import { sendImageToCloudinary } from '../../utils/sendImageToCloudinary';
 import sendResponse from '../../utils/sendResponse';
@@ -65,6 +64,8 @@ const updateProduct = catchAsync(
   async (req: Request, res: Response): Promise<void> => {
     const { productId } = req.params;
     let updatedData = req.body;
+    console.log(updatedData, 'updatedData');
+
     const file = req.file;
 
     if (file) {

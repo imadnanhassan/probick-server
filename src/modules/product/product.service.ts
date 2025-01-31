@@ -37,6 +37,7 @@ const updateProductInDB = async (
   productId: string,
   updatedData: Partial<Product>
 ) => {
+  console.log(updatedData);
   const updatedProduct = await ProductModel.findByIdAndUpdate(
     productId,
     updatedData,
