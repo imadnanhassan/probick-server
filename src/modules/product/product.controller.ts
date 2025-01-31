@@ -6,6 +6,7 @@ import sendResponse from '../../utils/sendResponse';
 import catchAsync from '../../utils/catchAsync';
 
 const addProduct = catchAsync(async (req: Request, res: Response): Promise<void> => {
+  console.log(req.body, 'req.body');
   const file = req.file;
   if (!file) {
     return sendResponse(res, { statusCode: 400, success: false, message: 'No image file uploaded', data: null });
@@ -63,10 +64,16 @@ const getSingleProductById = catchAsync(
 const updateProduct = catchAsync(
   async (req: Request, res: Response): Promise<void> => {
     const { productId } = req.params;
-    let updatedData = req.body;
+    const updatedData = req.body;
+
+    console.log(req, 'req.body');
+    console.log(productId, 'productId');
     console.log(updatedData, 'updatedData');
 
+    return 
+
     const file = req.file;
+
 
     if (file) {
       const cloudinaryResult = await sendImageToCloudinary(
