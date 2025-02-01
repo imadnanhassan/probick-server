@@ -6,7 +6,7 @@ export interface TUser {
   name?: string;
   email: string;
   password: string;
-  role?: 'admin' | 'customer';
+  role?: 'admin' | 'user';
   status?: 'active' | 'in-active';
 }
 
