@@ -1,83 +1,98 @@
-import { config } from '../../config';
-import { User } from '../users/user.model';
-import { TLoginUser } from './auth.interface';
+import sendResponse from '../../utils/sendResponse';
+import { TLoginUser, TRegisterUser } from './auth.interface';
 import httpStatus from 'http-status';
-import { createToken, verifyToken } from './auth.utils';
-import AppError from '../../error/AppError';
 import bcrypt from 'bcrypt';
-import { TUser } from '../users/user.interface';
+import { UserModel } from '../users/user.model';
+import jwt from 'jsonwebtoken';
+import { config } from '../../config';
+import AppError from '../../error/AppError';
 
-const loginUser = async (payload: TLoginUser) => {
-  const user = await User.isUserExistByCustomId(payload.email);
+const registerUser = async (payload: TRegisterUser, res: any) => {
+  const { name, email, password } = payload;
+  console.log('payload', payload);
 
-  if (!user) {
-    throw new AppError(httpStatus.NOT_FOUND, 'This user is not found!');
+  if (!name || !email || !password) {
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: false,
+      message: 'Please provide all the required fields!',
+      data: {},
+    });
+
+    return;
   }
+  const existingUser = await UserModel.findOne({ email });
+  if (existingUser) {
+    sendResponse(res, {
+      statusCode: httpStatus.BAD_REQUEST,
+      success: false,
+      message: 'User already exists',
+      data: {},
+    });
 
-  // if (!(await User.isPasswordMatched(payload?.password, user?.password))) {
-  //   throw new AppError(httpStatus.FORBIDDEN, 'Password do not matched');
-  // }
+    return;
+  }
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const newUser = new UserModel({
+    name,
+    email,
+    password: hashedPassword,
+  });
+  await newUser.save();
+  const token = jwt.sign({ userId: newUser._id }, config.jwt_secret, {
+    expiresIn: '7days',
+  });
 
-  const jwtPayload = {
-    userId: user.id || '',
-    role: user.role || 'user',
-  };
-
-  const accessToken = createToken(
-    jwtPayload,
-    config.JWT_ACCESS_SECRET as string,
-    parseInt(config.jwt_access_expires_in as string)
-  );
-
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure: config.NODE_ENV === 'production',
+    sameSite: config.NODE_ENV === 'production' ? 'none' : 'strict',
+    maxAge: 1000 * 60 * 60 * 24 * 7,
+  });
   return {
-    accessToken,
+    token,
   };
 };
 
-const register = async (payload: TUser) => {
-  const { email, password, role } = payload;
+const loginUser = async (payload: TLoginUser, res: any) => {
+  const { email, password } = payload;
 
-  const existingUser = await User.findOne({ email });
-  if (existingUser) {
-    throw new AppError(httpStatus.BAD_REQUEST, 'User already exists.');
+  if (!email || !password) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      'Email and Password are required!'
+    );
   }
 
-  const hashedPassword = await bcrypt.hash(
-    password,
-    Number(config.bcrypt_salt_rounds)
-  );
-
-  const newUser = new User({
-    email,
-    password: hashedPassword,
-    role: role || 'user',
+  const user = await UserModel.findOne({ email });
+  if (!user) {
+    return {
+      message: 'User not found!',
+    };
+  }
+  const isPasswordMatched = await bcrypt.compare(password, user.password);
+  if (!isPasswordMatched) {
+    return {
+      message: 'Password do not matched',
+    };
+  }
+  const token = jwt.sign({ userId: user._id }, config.jwt_secret, {
+    expiresIn: '7days',
   });
 
-  await newUser.save();
-
-  const jwtPayload = {
-    userId: newUser.id || '',
-    role: newUser.role || 'user',
-  };
-
-  const accessToken = createToken(
-    jwtPayload,
-    config.JWT_ACCESS_SECRET as string,
-    parseInt(config.jwt_access_expires_in as string)
-  );
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure: config.NODE_ENV === 'production',
+    sameSite: config.NODE_ENV === 'production' ? 'none' : 'strict',
+    maxAge: 1000 * 60 * 60 * 24 * 7,
+  });
 
   return {
-    message: 'User registered successfully.',
-    user: {
-      id: newUser.id,
-      email: newUser.email,
-      role: newUser.role,
-    },
-    accessToken,
+    token,
   };
 };
 
 export const AuthServices = {
+  registerUser,
   loginUser,
-  register,
 };

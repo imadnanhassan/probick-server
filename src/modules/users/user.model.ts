@@ -1,10 +1,9 @@
 import { model, Schema } from 'mongoose';
-import { TUser, UserModel } from './user.interface';
-import { UserStatus } from './user.constant';
+import { TUser } from './user.interface';
 import { config } from '../../config';
 import bcrypt from 'bcrypt';
 
-const userSchema = new Schema<TUser, UserModel>(
+const userSchema = new Schema<TUser>(
   {
     email: {
       type: String,
@@ -14,18 +13,12 @@ const userSchema = new Schema<TUser, UserModel>(
     password: {
       type: String,
       required: true,
-      
     },
 
     role: {
       type: String,
-      enum: ['admin',  'user'], // Ensure 'customer' is included
-      default: 'user', // Set a default if applicable
-    },
-    status: {
-      type: String,
-      enum: ['active', 'inactive'], // Ensure correct status values
-      default: 'inactive',
+      enum: ['admin', 'user'],
+      default: 'user',
     },
   },
   {
@@ -34,8 +27,8 @@ const userSchema = new Schema<TUser, UserModel>(
 );
 
 userSchema.pre('save', async function (next) {
-  const user = this; // doc
-  // hashing password and save into DB
+  const user = this;
+
   user.password = await bcrypt.hash(
     user.password,
     Number(config.bcrypt_salt_rounds)
@@ -43,32 +36,9 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
-// set '' after saving password
 userSchema.post('save', function (doc, next) {
   doc.password = '';
   next();
 });
 
-userSchema.statics.isUserExistByCustomId = async function (email: string) {
-  return await this.findOne({ email }).select('+password');
-};
-
-userSchema.statics.isPasswordMatched = async function (
-  plainTextPassword: string,
-  hashedPassword: string
-) {
-  return await bcrypt.compare(plainTextPassword, hashedPassword);
-};
-
-
-
-userSchema.statics.isJWTIssuedBeforePasswordChanged = function (
-  passwordChangedTimestamp: Date,
-  jwtIssuedTimestamp: number
-) {
-  const passwordChangedTime =
-    new Date(passwordChangedTimestamp).getTime() / 1000;
-  return passwordChangedTime > jwtIssuedTimestamp;
-};
-
-export const User = model<TUser, UserModel>('User', userSchema);
+export const UserModel = model<TUser>('User', userSchema);

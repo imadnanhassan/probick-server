@@ -5,15 +5,16 @@ dotenv.config();
 // Export configuration variables
 export const config = {
   PORT: process.env.PORT || 5000,
+
   MONGO_URI:
     process.env.MONGO_URI_ATLAS || 'mongodb://localhost:27017/bicycle-store',
   NODE_ENV: process.env.NODE_ENV,
   bcrypt_salt_rounds: process.env.BCRYPT_SALT_ROUNDS,
   reset_pass_ui_link: process.env.RESET_PASS_UI_LINK,
 
-  CLOUDINARY_CLOUD_NAME : 'dg2mf6ipn',
-  CLOUDINARY_API_KEY : '397185693443894',
-  CLOUDINARY_API_SECRET : 'N4HKZglhptSHEYgAAeA_Vum0ETw',
+  CLOUDINARY_CLOUD_NAME: 'dg2mf6ipn',
+  CLOUDINARY_API_KEY: '397185693443894',
+  CLOUDINARY_API_SECRET: 'N4HKZglhptSHEYgAAeA_Vum0ETw',
 
   admin_password: process.env.ADMIN_PASSWORD,
 
@@ -26,4 +27,7 @@ export const config = {
     'a579f3787fbc762946b52f5f445cc7f4e95f76cf500ddb9bc99e6dd9304cd749',
   jwt_access_expires_in: process.env.JWT_ACCESS_EXPIRES_IN,
   jwt_refresh_expires_in: process.env.JWT_REFRESH_EXPIRES_IN,
+  jwt_secret: 'secret$admin',
+
+  node_env: process.env.NODE_ENV,
 };
