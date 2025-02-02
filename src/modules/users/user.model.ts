@@ -5,6 +5,13 @@ import bcrypt from 'bcrypt';
 
 const userSchema = new Schema<TUser>(
   {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+      minlength: 3,
+      maxlength: 50,
+    },
     email: {
       type: String,
       required: true,

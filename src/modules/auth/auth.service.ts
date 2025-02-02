@@ -39,7 +39,7 @@ const registerUser = async (payload: TRegisterUser, res: any) => {
     password: hashedPassword,
   });
   await newUser.save();
-  const token = jwt.sign({ userId: newUser._id }, config.jwt_secret, {
+  const token = jwt.sign({ userId: newUser._id, role:newUser.role, name: newUser.name, email: newUser.email }, config.jwt_secret, {
     expiresIn: '7days',
   });
 
@@ -65,6 +65,7 @@ const loginUser = async (payload: TLoginUser, res: any) => {
   }
 
   const user = await UserModel.findOne({ email });
+  console.log(user)
   if (!user) {
     return {
       message: 'User not found!',
@@ -76,9 +77,13 @@ const loginUser = async (payload: TLoginUser, res: any) => {
       message: 'Password do not matched',
     };
   }
-  const token = jwt.sign({ userId: user._id }, config.jwt_secret, {
-    expiresIn: '7days',
-  });
+  const token = jwt.sign(
+    { userId: user._id, role: user.role, name: user.name, email: user.email },
+    config.jwt_secret,
+    {
+      expiresIn: '7days',
+    }
+  );
 
   res.cookie('token', token, {
     httpOnly: true,
