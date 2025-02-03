@@ -22,11 +22,13 @@ const registerUser = async (payload: TRegisterUser, res: any) => {
     return;
   }
   const existingUser = await UserModel.findOne({ email });
-  if (existingUser) {
+  console.log(existingUser);
+
+  if (!existingUser) {
     sendResponse(res, {
       statusCode: httpStatus.BAD_REQUEST,
       success: false,
-      message: 'User already exists',
+      message: 'User not found',
       data: {},
     });
 
@@ -34,14 +36,26 @@ const registerUser = async (payload: TRegisterUser, res: any) => {
   }
   const hashedPassword = await bcrypt.hash(password, 10);
   const newUser = new UserModel({
-    name,
-    email,
+    name: payload.name,
+    email: payload.email,
     password: hashedPassword,
+    role: payload.role,
   });
+
+  console.log(newUser);
   await newUser.save();
-  const token = jwt.sign({ userId: newUser._id, role:newUser.role, name: newUser.name, email: newUser.email }, config.jwt_secret, {
-    expiresIn: '7days',
-  });
+  const token = jwt.sign(
+    {
+      userId: newUser._id,
+      role: newUser.role,
+      name: newUser.name,
+      email: newUser.email,
+    },
+    config.JWT_ACCESS_SECRET,
+    {
+      expiresIn: '7days',
+    }
+  );
 
   res.cookie('token', token, {
     httpOnly: true,
@@ -65,21 +79,16 @@ const loginUser = async (payload: TLoginUser, res: any) => {
   }
 
   const user = await UserModel.findOne({ email });
-  console.log(user)
+
   if (!user) {
     return {
       message: 'User not found!',
     };
   }
-  const isPasswordMatched = await bcrypt.compare(password, user.password);
-  if (!isPasswordMatched) {
-    return {
-      message: 'Password do not matched',
-    };
-  }
+
   const token = jwt.sign(
     { userId: user._id, role: user.role, name: user.name, email: user.email },
-    config.jwt_secret,
+    config.JWT_ACCESS_SECRET,
     {
       expiresIn: '7days',
     }
@@ -94,6 +103,12 @@ const loginUser = async (payload: TLoginUser, res: any) => {
 
   return {
     token,
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    },
   };
 };
 

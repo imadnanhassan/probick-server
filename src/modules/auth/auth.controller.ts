@@ -25,11 +25,12 @@ const registerUser = catchAsync(async (req, res) => {
 
 const loginUser = catchAsync(async (req, res) => {
   const result = await AuthServices.loginUser(req.body, res);
-
+  console.log(result);
 
   if (!result) {
     throw new AppError(httpStatus.UNAUTHORIZED, 'Invalid credentials!');
   }
+
   const { token } = result;
 
   sendResponse(res, {

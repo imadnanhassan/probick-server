@@ -9,7 +9,7 @@ const superUser = {
   needsPasswordChange: false,
   role: USER_ROLE.admin,
   status: 'active',
-  isDeleted: false,
+
 };
 
 const seedAdmin = async () => {
