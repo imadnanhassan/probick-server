@@ -31,6 +31,7 @@ const OrderSchema = new Schema<Order & Document>(
       enum: ['Pending', 'Processing', 'Shipped', 'Delivered'],
       default: 'Pending',
     },
+    paymentMethod: { type: String, enum: ['COD', 'SSL'], required: true },
   },
   { timestamps: true }
 );

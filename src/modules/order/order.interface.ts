@@ -10,10 +10,11 @@ export interface OrderItem {
 
 export interface Order {
   _id?: string;
-  user: TUser; 
+  user: TUser;
   items: OrderItem[];
   totalPrice: number;
   status: OrderStatus;
+  paymentMethod: 'COD' | 'SSL';
   createdAt?: Date;
   updatedAt?: Date;
 }

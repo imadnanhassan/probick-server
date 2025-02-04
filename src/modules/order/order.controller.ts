@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import { OrderService } from './order.service';
 import sendResponse from '../../utils/sendResponse';
 
-
 export const OrderController = {
   // Create Order
   createOrder: async (req: Request, res: Response) => {
@@ -70,7 +69,10 @@ export const OrderController = {
     try {
       const { orderId } = req.params;
       const { status } = req.body;
-      const updatedOrder = await OrderService.updateOrderStatus(orderId, status);
+      const updatedOrder = await OrderService.updateOrderStatus(
+        orderId,
+        status
+      );
 
       if (!updatedOrder) {
         return sendResponse(res, {
