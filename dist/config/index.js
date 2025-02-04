@@ -23,4 +23,6 @@ exports.config = {
     JWT_REFRESH_SECRE: 'a579f3787fbc762946b52f5f445cc7f4e95f76cf500ddb9bc99e6dd9304cd749',
     jwt_access_expires_in: process.env.JWT_ACCESS_EXPIRES_IN,
     jwt_refresh_expires_in: process.env.JWT_REFRESH_EXPIRES_IN,
+    jwt_secret: 'secret$admin',
+    node_env: process.env.NODE_ENV,
 };

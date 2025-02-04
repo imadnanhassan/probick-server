@@ -13,95 +13,83 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthServices = void 0;
-const config_1 = require("../../config");
-const user_model_1 = require("../users/user.model");
+const sendResponse_1 = __importDefault(require("../../utils/sendResponse"));
 const http_status_1 = __importDefault(require("http-status"));
-const auth_utils_1 = require("./auth.utils");
-const AppError_1 = __importDefault(require("../../error/AppError"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
-const loginUser = (payload) => __awaiter(void 0, void 0, void 0, function* () {
-    // checking if the user is exist
-    const user = yield user_model_1.User.isUserExistByCustomId(payload.email);
-    console.log(user);
-    console.log(payload.password, 'Payload Password');
-    if (!user) {
-        throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'This user is not found !');
+const user_model_1 = require("../users/user.model");
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const config_1 = require("../../config");
+const AppError_1 = __importDefault(require("../../error/AppError"));
+const registerUser = (payload, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { name, email, password } = payload;
+    console.log('payload', payload);
+    if (!name || !email || !password) {
+        (0, sendResponse_1.default)(res, {
+            statusCode: http_status_1.default.OK,
+            success: false,
+            message: 'Please provide all the required fields!',
+            data: {},
+        });
+        return;
     }
-    //checking if the password is correct
-    // if (!(await User.isPasswordMatched(payload?.password, user?.password))) {
-    //   throw new AppError(httpStatus.FORBIDDEN, 'Password do not matched');
-    // }
-    //create token and sent to the  client
-    const jwtPayload = {
-        userId: user.id || '',
-        role: user.role || 'customer',
-    };
-    const accessToken = (0, auth_utils_1.createToken)(jwtPayload, config_1.config.JWT_ACCESS_SECRET, parseInt(config_1.config.jwt_access_expires_in));
-    const refreshToken = (0, auth_utils_1.createToken)(jwtPayload, config_1.config.JWT_REFRESH_SECRE, parseInt(config_1.config.jwt_refresh_expires_in));
-    return {
-        accessToken,
-        refreshToken,
-    };
-});
-const register = (payload) => __awaiter(void 0, void 0, void 0, function* () {
-    const { email, password, role } = payload;
-    console.log(payload);
-    // Check if user already exists by email
-    const existingUser = yield user_model_1.User.findOne({ email });
-    if (existingUser) {
-        throw new AppError_1.default(http_status_1.default.BAD_REQUEST, 'User already exists.');
-    }
-    // Hash the password
-    const hashedPassword = yield bcrypt_1.default.hash(password, Number(config_1.config.bcrypt_salt_rounds));
-    // Create a new user with customer role
-    const newUser = new user_model_1.User({
-        email,
+    const hashedPassword = yield bcrypt_1.default.hash(password, 10);
+    const newUser = new user_model_1.UserModel({
+        name: payload.name,
+        email: payload.email,
         password: hashedPassword,
-        role: role || 'customer',
+        role: payload.role,
     });
-    // Save the new user
+    console.log(newUser);
     yield newUser.save();
-    // JWT payload
-    const jwtPayload = {
-        userId: newUser.id || '',
-        role: newUser.role || 'customer',
-    };
-    // Generate the access token
-    const accessToken = (0, auth_utils_1.createToken)(jwtPayload, config_1.config.JWT_ACCESS_SECRET, parseInt(config_1.config.jwt_access_expires_in));
-    // Generate the refresh token
-    const refreshToken = (0, auth_utils_1.createToken)(jwtPayload, config_1.config.JWT_REFRESH_SECRE, parseInt(config_1.config.jwt_refresh_expires_in));
+    const token = jsonwebtoken_1.default.sign({
+        userId: newUser._id,
+        role: newUser.role,
+        name: newUser.name,
+        email: newUser.email,
+    }, config_1.config.JWT_ACCESS_SECRET, {
+        expiresIn: '7days',
+    });
+    res.cookie('token', token, {
+        httpOnly: true,
+        secure: config_1.config.NODE_ENV === 'production',
+        sameSite: config_1.config.NODE_ENV === 'production' ? 'none' : 'strict',
+        maxAge: 1000 * 60 * 60 * 24 * 7,
+    });
     return {
-        message: 'User registered successfully.',
-        user: {
-            id: newUser.id,
-            email: newUser.email,
-            role: newUser.role,
-        },
-        jwtPayload,
-        accessToken,
-        refreshToken,
+        token,
     };
 });
-const refreshToken = (token) => __awaiter(void 0, void 0, void 0, function* () {
-    // checking if the given token is valid
-    const decoded = (0, auth_utils_1.verifyToken)(token, config_1.config.JWT_REFRESH_SECRE);
-    const { userId, iat } = decoded;
-    // checking if the user is exist
-    const user = yield user_model_1.User.isUserExistByCustomId(userId);
-    if (!user) {
-        throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'This user is not found !');
+const loginUser = (payload, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { email, password } = payload;
+    if (!email || !password) {
+        throw new AppError_1.default(http_status_1.default.BAD_REQUEST, 'Email and Password are required!');
     }
-    const jwtPayload = {
-        userId: user.id || '',
-        role: user.role || 'customer',
-    };
-    const accessToken = (0, auth_utils_1.createToken)(jwtPayload, config_1.config.JWT_ACCESS_SECRET, parseInt(config_1.config.jwt_access_expires_in));
+    const user = yield user_model_1.UserModel.findOne({ email });
+    if (!user) {
+        return {
+            message: 'User not found!',
+        };
+    }
+    const token = jsonwebtoken_1.default.sign({ userId: user._id, role: user.role, name: user.name, email: user.email }, config_1.config.JWT_ACCESS_SECRET, {
+        expiresIn: '7days',
+    });
+    res.cookie('token', token, {
+        httpOnly: true,
+        secure: config_1.config.NODE_ENV === 'production',
+        sameSite: config_1.config.NODE_ENV === 'production' ? 'none' : 'strict',
+        maxAge: 1000 * 60 * 60 * 24 * 7,
+    });
     return {
-        accessToken,
+        token,
+        user: {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+        },
     };
 });
 exports.AuthServices = {
+    registerUser,
     loginUser,
-    register,
-    refreshToken,
 };

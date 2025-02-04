@@ -11,6 +11,9 @@ const createToken = (jwtPayload, secret, expiresIn) => {
     });
 };
 exports.createToken = createToken;
+//  const token = jwt.sign({ userId: newUser._id }, config.jwt_secret, {
+//     expiresIn: '7days',
+//   });
 const verifyToken = (token, secret) => {
     return jsonwebtoken_1.default.verify(token, secret);
 };

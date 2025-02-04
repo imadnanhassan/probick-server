@@ -8,21 +8,54 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OrderController = void 0;
 const apiResponse_1 = require("../../utils/apiResponse");
 const order_service_1 = require("./order.service");
-const order_validation_1 = require("./order.validation");
-const createOrder = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const catchAsync_1 = __importDefault(require("../../utils/catchAsync"));
+const sendResponse_1 = __importDefault(require("../../utils/sendResponse"));
+const createOrder = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log(req.body);
+    const order = yield order_service_1.OrderService.createOrderInDB(req.body);
+    console.log(order);
+    (0, sendResponse_1.default)(res, {
+        statusCode: 201,
+        success: true,
+        message: 'Order created successfully',
+        data: { order },
+    });
+}));
+const updateOrder = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const orderData = order_validation_1.OrderSchema.parse(req.body);
-        const order = yield order_service_1.OrderService.createOrder(orderData);
-        res
-            .status(200)
-            .json(apiResponse_1.apiResponse.success(order, 'Order created successfully'));
+        const order = yield order_service_1.OrderService.updateOrder(req.params.orderId, req.body.status);
+        res.status(200).json({ order });
     }
     catch (error) {
-        res.status(400).json(apiResponse_1.apiResponse.error(error, 'Invalid order data'));
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        res.status(500).json({ message: errorMessage });
+    }
+});
+const getOrders = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const orders = yield order_service_1.OrderService.getAllOrders();
+        res.status(200).json({ orders });
+    }
+    catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        res.status(500).json({ message: errorMessage });
+    }
+});
+const getOrderById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const order = yield order_service_1.OrderService.getOrderById(req.params.orderId);
+        res.status(200).json({ order });
+    }
+    catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+        res.status(500).json({ message: errorMessage });
     }
 });
 const getTotalRevenue = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -41,5 +74,8 @@ const getTotalRevenue = (req, res) => __awaiter(void 0, void 0, void 0, function
 });
 exports.OrderController = {
     createOrder,
+    updateOrder,
+    getOrders,
+    getOrderById,
     getTotalRevenue,
 };

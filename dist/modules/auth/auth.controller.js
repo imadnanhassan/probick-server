@@ -13,61 +13,43 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthControllers = void 0;
-const config_1 = require("../../config");
 const catchAsync_1 = __importDefault(require("../../utils/catchAsync"));
 const sendResponse_1 = __importDefault(require("../../utils/sendResponse"));
-const auth_service_1 = require("./auth.service");
 const http_status_1 = __importDefault(require("http-status"));
-const loginUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield auth_service_1.AuthServices.loginUser(req.body);
-    const { refreshToken, accessToken } = result;
-    res.cookie('refreshToken', refreshToken, {
-        secure: config_1.config.NODE_ENV === 'production',
-        httpOnly: true,
-        sameSite: 'none',
-        maxAge: 1000 * 60 * 60 * 24 * 365,
-    });
-    (0, sendResponse_1.default)(res, {
-        statusCode: http_status_1.default.OK,
-        success: true,
-        message: 'User is logged in succesfully!',
-        data: {
-            accessToken,
-        },
-    });
-}));
+const auth_service_1 = require("./auth.service");
+const AppError_1 = __importDefault(require("../../error/AppError"));
 const registerUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield auth_service_1.AuthServices.register(req.body);
-    const { accessToken, refreshToken } = result;
-    // Set the refresh token in a cookie
-    res.cookie('refreshToken', refreshToken, {
-        secure: config_1.config.NODE_ENV === 'production',
-        httpOnly: true,
-        sameSite: 'none',
-        maxAge: 1000 * 60 * 60 * 24 * 365, // 1 year
-    });
-    // Send the success response
+    const result = yield auth_service_1.AuthServices.registerUser(req.body, res);
+    if (!result || !result.token) {
+        throw new AppError_1.default(http_status_1.default.INTERNAL_SERVER_ERROR, 'User registration failed!');
+    }
+    const { token } = result;
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_1.default.CREATED,
         success: true,
         message: 'User registered successfully!',
         data: {
-            accessToken, // Send access token to the client
+            token,
         },
     });
 }));
-const refreshToken = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { refreshToken } = req.cookies;
-    const result = yield auth_service_1.AuthServices.refreshToken(refreshToken);
+const loginUser = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield auth_service_1.AuthServices.loginUser(req.body, res);
+    console.log(result);
+    if (!result) {
+        throw new AppError_1.default(http_status_1.default.UNAUTHORIZED, 'Invalid credentials!');
+    }
+    const { token } = result;
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_1.default.OK,
         success: true,
-        message: 'Access token is retrieved succesfully!',
-        data: result,
+        message: 'User logged in successfully!',
+        data: {
+            token: token,
+        },
     });
 }));
 exports.AuthControllers = {
-    loginUser,
     registerUser,
-    refreshToken,
+    loginUser,
 };

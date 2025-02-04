@@ -2,14 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProductModel = void 0;
 const mongoose_1 = require("mongoose");
-var BicycleType;
-(function (BicycleType) {
-    BicycleType["Mountain"] = "Mountain";
-    BicycleType["Road"] = "Road";
-    BicycleType["Hybrid"] = "Hybrid";
-    BicycleType["BMX"] = "BMX";
-    BicycleType["Electric"] = "Electric";
-})(BicycleType || (BicycleType = {}));
 const productSchema = new mongoose_1.Schema({
     name: { type: String, required: [true, 'Name is required'] },
     brand: { type: String, required: [true, 'Brand is required'] },

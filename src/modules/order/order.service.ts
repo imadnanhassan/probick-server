@@ -1,104 +1,38 @@
 import { OrderModel } from './order.model';
-import { ProductModel } from '../product/product.model';
-import { IOrder } from './order.interface';
-import AppError from '../../error/AppError';
-import { UserModel } from '../users/user.model';
+import { Order } from './order.interface';
 
-const createOrderInDB = async (orderData: IOrder) => {
-  const user = await UserModel.findById(orderData.userId);
-  if (!user) {
-    throw new Error('User not found');
-  }
-  let totalPrice: number = 0;
-  if (!orderData.products) {
-    throw new Error('No products found in order data');
-  }
-  for (const item of orderData.products) {
-    const product = await ProductModel.findById(item.productId);
-    if (!product) {
-      throw new Error(`Product with ID ${item.productId} not found`);
-    }
-
-    const quantity = parseInt(item.quantity, 10);
-    if (isNaN(quantity) || quantity <= 0) {
-      throw new Error(`Invalid quantity for product ${item.productId}`);
-    }
-
-    totalPrice += Number(product.price) * quantity;
-
-    const newOrder = new OrderModel({
-      userId: orderData.userId,
-      customerName: user.name,
-      customerEmail: user.email,
-      products: orderData.products,
-      totalPrice,
-      status: 'pending',
-    });
-
-    return await newOrder.save();
-  }
+// Create an order
+ const createOrder = async (orderData: Order): Promise<Order> => {
+  return await OrderModel.create(orderData);
 };
 
-export const updateOrder = async (orderId: string, status: string) => {
-  const order = await OrderModel.findByIdAndUpdate(
-    orderId,
-    { status },
-    { new: true }
-  );
-  if (!order) {
-    throw new AppError(404, 'Order not found');
-  }
-  return order;
+// Get all orders (Admin)
+ const getAllOrders = async (): Promise<Order[]> => {
+  return await OrderModel.find().populate('user').populate('items.product');
 };
 
-const getAllOrders = async () => {
-  const orders = await OrderModel.find().populate('user').populate('products');
-  return orders;
+// Get user-specific orders
+const getOrdersByUser = async (userId: string): Promise<Order[]> => {
+  return await OrderModel.find({ user: userId }).populate('items.product');
 };
 
-const getOrderById = async (orderId: string) => {
-  const order = await OrderModel.findById(orderId)
-    .populate('user')
-    .populate('products');
-  if (!order) {
-    throw new AppError(404, 'Order not found');
-  }
-  return order;
+// Update order status (Admin)
+ const updateOrderStatus = async (
+  orderId: string,
+  status: string
+): Promise<Order | null> => {
+  return await OrderModel.findByIdAndUpdate(orderId, { status }, { new: true });
 };
 
-const calculateRevenue = async () => {
-  const revenueData = await OrderModel.aggregate([
-    {
-      $lookup: {
-        from: 'products',
-        localField: 'product',
-        foreignField: '_id',
-        as: 'productDetails',
-      },
-    },
-    {
-      $unwind: '$productDetails',
-    },
-    {
-      $project: {
-        totalPrice: { $multiply: ['$productDetails.price', '$quantity'] },
-      },
-    },
-    {
-      $group: {
-        _id: null,
-        totalRevenue: { $sum: '$totalPrice' },
-      },
-    },
-  ]);
-
-  return revenueData.length > 0 ? revenueData[0] : { totalRevenue: 0 };
+// Delete order
+ const deleteOrder = async (orderId: string): Promise<Order | null> => {
+  return await OrderModel.findByIdAndDelete(orderId);
 };
 
 export const OrderService = {
-  createOrderInDB,
-  updateOrder,
+  createOrder,
   getAllOrders,
-  getOrderById,
-  calculateRevenue,
+  getOrdersByUser,
+  updateOrderStatus,
+  deleteOrder,
 };

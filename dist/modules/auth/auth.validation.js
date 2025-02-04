@@ -19,10 +19,8 @@ const registerValidationSchema = zod_1.z.object({
     }),
 });
 const refreshTokenValidationSchema = zod_1.z.object({
-    cookies: zod_1.z.object({
-        refreshToken: zod_1.z.string({
-            required_error: 'Refresh token is required!',
-        }),
+    refreshToken: zod_1.z.string({
+        required_error: 'Refresh token is required!',
     }),
 });
 exports.AuthValidation = {

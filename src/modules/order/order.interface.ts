@@ -1,15 +1,19 @@
-import mongoose, { Types } from 'mongoose';
+import { Product } from "../product/product.interface";
+import { TUser } from "../users/user.interface";
 
-export interface IOrderProduct {
-  productId: mongoose.Types.ObjectId;
-  quantity: string;
+export type OrderStatus = 'Pending' | 'Processing' | 'Shipped' | 'Delivered';
+
+export interface OrderItem {
+  product: Product;
+  quantity: number;
 }
 
-export interface IOrder {
-  userId: Types.ObjectId;
-  products?: IOrderProduct[];
+export interface Order {
+  _id?: string;
+  user: TUser; 
+  items: OrderItem[];
   totalPrice: number;
-  status: 'pending' | 'shipped' | 'delivered' | 'cancelled';
+  status: OrderStatus;
   createdAt?: Date;
   updatedAt?: Date;
 }

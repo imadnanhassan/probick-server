@@ -12,18 +12,25 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const user_constant_1 = require("../modules/users/user.constant");
 const user_model_1 = require("../modules/users/user.model");
 const superUser = {
-    id: '0001',
+    name: 'Adnan Hassan',
     email: 'adnanhassan@gmail.com',
     password: 'admin123456',
     needsPasswordChange: false,
     role: user_constant_1.USER_ROLE.admin,
     status: 'active',
-    isDeleted: false,
 };
 const seedAdmin = () => __awaiter(void 0, void 0, void 0, function* () {
-    const isAdminExist = yield user_model_1.User.findOne({ role: user_constant_1.USER_ROLE.admin });
+    const isAdminExist = yield user_model_1.UserModel.findOne({ role: user_constant_1.USER_ROLE.admin });
     if (!isAdminExist) {
-        yield user_model_1.User.create(superUser);
+        yield user_model_1.UserModel.create(superUser);
     }
 });
 exports.default = seedAdmin;
+// "scripts": {
+//   "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+//   "build": "tsc",
+//   "start": "node dist/server.js",
+//   "lint": "eslint './src/**/*.{ts,tsx}' --fix",
+//   "format": "prettier --write './src/**/*.{ts,tsx}'",
+//   "lint:fix": "eslint . --ext .ts,.tsx --fix"
+// },

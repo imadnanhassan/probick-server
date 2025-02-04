@@ -20,3 +20,14 @@ const seedAdmin = async () => {
 };
 
 export default seedAdmin;
+
+
+
+  // "scripts": {
+  //   "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+  //   "build": "tsc",
+  //   "start": "node dist/server.js",
+  //   "lint": "eslint './src/**/*.{ts,tsx}' --fix",
+  //   "format": "prettier --write './src/**/*.{ts,tsx}'",
+  //   "lint:fix": "eslint . --ext .ts,.tsx --fix"
+  // },
