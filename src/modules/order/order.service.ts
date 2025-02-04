@@ -2,37 +2,41 @@ import { OrderModel } from './order.model';
 import { ProductModel } from '../product/product.model';
 import { IOrder } from './order.interface';
 import AppError from '../../error/AppError';
+import { UserModel } from '../users/user.model';
 
-const createOrderinDB = async (data: any): Promise<IOrder> => {
-  const { userId, products, totalPrice } = data;
-
-  const productIds = products.map((prod: any) => prod.productId);
-  const foundProducts = await ProductModel.find({ _id: { $in: productIds } });
-
-  if (foundProducts.length !== products.length) {
-    throw new AppError(400, 'Some products are invalid or out of stock');
+const createOrderInDB = async (orderData: IOrder) => {
+  const user = await UserModel.findById(orderData.userId);
+  if (!user) {
+    throw new Error('User not found');
   }
-
-  // Check stock levels
-  for (let prod of products) {
-    const product = foundProducts.find(
-      (p) => p._id.toString() === prod.productId
-    );
-    if (product && !product.inStock) {
-      throw new AppError(400, `Not enough stock for ${product.name}`);
+  let totalPrice: number = 0;
+  if (!orderData.products) {
+    throw new Error('No products found in order data');
+  }
+  for (const item of orderData.products) {
+    const product = await ProductModel.findById(item.productId);
+    if (!product) {
+      throw new Error(`Product with ID ${item.productId} not found`);
     }
+
+    const quantity = parseInt(item.quantity, 10);
+    if (isNaN(quantity) || quantity <= 0) {
+      throw new Error(`Invalid quantity for product ${item.productId}`);
+    }
+
+    totalPrice += Number(product.price) * quantity;
+
+    const newOrder = new OrderModel({
+      userId: orderData.userId,
+      customerName: user.name,
+      customerEmail: user.email,
+      products: orderData.products,
+      totalPrice,
+      status: 'pending',
+    });
+
+    return await newOrder.save();
   }
-
-  // Create order
-  const order = new OrderModel({
-    user: userId,
-    products: products.map((prod: any) => prod.productId),
-    totalPrice,
-    status: 'pending',
-  });
-
-  await order.save();
-  return order;
 };
 
 export const updateOrder = async (orderId: string, status: string) => {
@@ -92,7 +96,7 @@ const calculateRevenue = async () => {
 };
 
 export const OrderService = {
-  createOrderinDB,
+  createOrderInDB,
   updateOrder,
   getAllOrders,
   getOrderById,

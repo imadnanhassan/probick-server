@@ -1,14 +1,8 @@
 import { model, Schema } from 'mongoose';
 import { Product } from './product.interface';
-import { string } from 'zod';
 
-enum BicycleType {
-  Mountain = 'Mountain',
-  Road = 'Road',
-  Hybrid = 'Hybrid',
-  BMX = 'BMX',
-  Electric = 'Electric',
-}
+
+
 
 const productSchema = new Schema<Product>(
   {

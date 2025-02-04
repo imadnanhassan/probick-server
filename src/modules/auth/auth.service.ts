@@ -21,19 +21,7 @@ const registerUser = async (payload: TRegisterUser, res: any) => {
 
     return;
   }
-  const existingUser = await UserModel.findOne({ email });
-  console.log(existingUser);
 
-  if (!existingUser) {
-    sendResponse(res, {
-      statusCode: httpStatus.BAD_REQUEST,
-      success: false,
-      message: 'User not found',
-      data: {},
-    });
-
-    return;
-  }
   const hashedPassword = await bcrypt.hash(password, 10);
   const newUser = new UserModel({
     name: payload.name,

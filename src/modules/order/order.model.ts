@@ -1,21 +1,24 @@
-import mongoose, { model, Schema } from 'mongoose';
+import { Schema, model, Types } from 'mongoose';;
 import { IOrder } from './order.interface';
 
-const OrderSchema = new Schema<IOrder>(
-  {
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
+const orderSchema = new Schema<IOrder>(
+    {
+    userId: {
+      type: Schema.Types.ObjectId,  
+      ref: 'User',          
+      required: true,      
     },
     products: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Product',
-        required: true,
-        quantity: String,
+        productId: {
+          type: Types.ObjectId,
+          required: true,
+        },
+        quantity: {
+          type: String,      
+          required: true,
+        },
       },
-      
     ],
     totalPrice: {
       type: Number,
@@ -30,4 +33,4 @@ const OrderSchema = new Schema<IOrder>(
   { timestamps: true }
 );
 
-export const OrderModel = model<IOrder>('Order', OrderSchema);
+export const OrderModel = model<IOrder>('Order', orderSchema);

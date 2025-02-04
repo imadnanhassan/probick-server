@@ -1,18 +1,21 @@
 import { Request, Response } from 'express';
 import { apiResponse } from '../../utils/apiResponse';
 import { OrderService } from './order.service';
-import { IOrder } from './order.interface';
+import catchAsync from '../../utils/catchAsync';
+import sendResponse from '../../utils/sendResponse';
 
-const createOrder = async (req: Request, res: Response) => {
-  try {
-    const order: IOrder = await OrderService.createOrderinDB(req.body);
-    res.status(201).json({ order });
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : 'An unknown error occurred';
-    res.status(500).json({ message: errorMessage });
-  }
-};
+const createOrder = catchAsync(async (req: Request, res: Response) => {
+  console.log(req.body);
+  const order = await OrderService.createOrderInDB(req.body);
+  console.log(order);
+
+  sendResponse(res, {
+    statusCode: 201,
+    success: true,
+    message: 'Order created successfully',
+    data: { order },
+  });
+});
 
 const updateOrder = async (req: Request, res: Response) => {
   try {
