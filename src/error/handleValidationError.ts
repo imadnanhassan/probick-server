@@ -7,7 +7,7 @@ const handleValidationError = (err: Error.ValidationError) => {
     message: el.message,
   }));
 
-  return new AppError(400, 'Validation error', errors);
+  return new AppError(400, 'Validation error', JSON.stringify(errors));
 };
 
 export default handleValidationError;

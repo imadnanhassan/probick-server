@@ -1,9 +1,8 @@
 import express, { Application } from 'express';
 import cors from 'cors';
-import { errorHandler } from './middleware/errorHandler';
-
 import router from './routes';
 import cookieParser from 'cookie-parser';
+import { globalErrorHandler } from './error/globalErrorHandler';
 
 const app: Application = express();
 
@@ -22,10 +21,9 @@ app.get('/', (req, res) => {
 app.use('/api/v1', router);
 
 // Global Error Handler
-app.use(errorHandler);
+app.use(globalErrorHandler);
 
 // Not Found
 // app.use(notFound)
 
 export default app;
-
